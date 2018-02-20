@@ -1,137 +1,93 @@
 import pygame
-
 pygame.init()
 
-def read_textfile(file_name):
-  with open(file_name, 'r') as f:
+def hide_message(message_file_path, original_image_path, encoded_image_path):
+  # read message from text file
+  with open(message_file_path, 'r') as f:
     message = f.read()
 
-  return message
+  message += "[[:stop:]]"
+  # convert message to binary
+  binary_digits = ""
+  for c in message:
+    d = ord(c)
+    b = bin(d)
+    b = b[2:]
 
-def write_textfile(text, file_name):
-  with open(file_name, 'w') as f:
-    f.write(text)
-
-def load_image(file_name):
-  return pygame.image.load(file_name)
-
-def save_surface_as_image(surf, file_name):
-  pygame.image.save(surf, file_name)
-
-def chr_to_bin(c, num_bits):
-  d = ord(c)
-  b = bin(d)
-  b = b[2:]
-  
-  while len(b) < 8:
-    b = "0" + b
+    while len(b) < 8:
+      b = "0" + b
     
-  return b
-
-def message_to_bin(message, bits_per_char):
-  binary_str = ""
-  
-  for character in message:
-    binary_str += chr_to_bin(character, bits_per_char)
-
-  return binary_str
-
-def adjust_pixel(pixel, bit):
-  red = pixel.r
-  green = pixel.g
-  blue = pixel.b
+    binary_digits += b
     
-  even = red % 2
-  bit = int(bit)
-  
-  if (even and bit == 1) or (not even and bit == 0):
-    pixel
+  # load the original image file as a surface
+  surf = pygame.image.load(original_image_path)
+  width = surf.get_width()
+  height = surf.get_height()
 
-  return pixel
-
-def build_image(pixels, dimensions):
-  image = pygame.Surface(dimensions)
-
-  for p in pixels:
-    pass
-  
-  return image
-
-def embed_message(message, image_file):
-  image = load_image(image_file)
-  pxarray = pygame.PixelArray(image)
-  
-  message_size = len(message)
-  
-  for i in range(message_size):
-    pixels[i].b = 100
-  
-  return pixels         
-
-
-def extract_message(image):
-  pass
-
-image = load_image("red.bmp")
-image_rect = image.get_rect()
-print(image_rect)
-
-width = image.get_width()
-height = image.get_height()
-
-changed_image = pygame.Surface([width, height])
-
-print(width, height)
-
-pxarray = pygame.PixelArray(image)
-
-for y in range(height):
+  # loop through surface and adjust pixels
+  digit_index = 0
+  result = ""
   for x in range(width):
-    pixel = pygame.Color(pxarray[x, y])
-    #print(type(pixel), pixel)
-    red = pixel.r
-    green = pixel.g
-    blue = pixel.b
+    for y in range(height):
+      loc = [x, y]
+      
+      if digit_index < len(binary_digits):
+        color = surf.get_at(loc)
 
-    print(red, green, blue)
-    
-    changed_image.set_at((x, y), (0, 0, 255))
+        blue = color.b
+        bit = int(binary_digits[digit_index])
+        even = blue % 2 == 0
+        
+        if (even and bit == 1) or (not even and bit == 0):
+          blue += 1
 
-pygame.image.save(changed_image, "blue.png")
+          if blue > 255:
+            blue -= 2
+            
+        color.b = blue
+        result += str(color.b % 2)
+        
+        surf.set_at(loc, color)
+        digit_index += 1
+
+  # save the new image
+  pygame.image.save(surf, encoded_image_path)
+
+  print("Success! Your secret message was hidden in '" + encoded_image_path + "'.")
 
 
-num = 10
-binary = bin(num)
+def extract_message(encoded_image_path, extracted_message_path):
+  # load image as surface
+  surf = pygame.image.load(encoded_image_path)
+  width = surf.get_width()
+  height = surf.get_height()
 
-
-print(binary)
-print(type(binary))
-
-decimal = int(binary, 2)
-print(decimal)
-
-secret = "Hello!"
-
-new_pixels = adjust_pixels(secret, pxarray)
-
-for y in range(height):
+  # build binary digit string from image
+  binary_digits = ""
+  
   for x in range(width):
-    pixel = pygame.Color(pxarray[x, y])
-    red = pixel.r
-    green = pixel.g
-    blue = pixel.b
+    for y in range(height):
+      loc = [x, y]
+      color = surf.get_at(loc)
+      blue = color.b
+      binary_digits += str(blue % 2)
 
-    loc = [x, y]
-    new_color = [red, green, blue]
-    
-    changed_image.set_at(loc, new_color)
-    
-save_surface_as_image(changed_image, "blue.png")
+  result = ""
 
+  # separate binary string into 8 bit chunks
+  chunks = [binary_digits[i: i+8] for i in range(0, len(binary_digits), 8)]
 
-for i in range(32, 127):
-  c = chr(i)
-  b = chr_to_bin(c, 8)
-  print(b)
+  for c in chunks:
+    d = int(c, 2)
+    if 32 <= d <= 126:
+      result += str(chr(d))
+  #
+  end = result.find("[[:stop:]]")
+  result = result[:end]
+  
+  # write extracted message to file
+  with open(extracted_message_path, 'w') as f:
+    f.write(result)
+        
+  print("Success! Your secret message was extracted to '" + extracted_message_path + "'.")
 
-print(message_to_bin(secret, 8))
