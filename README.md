@@ -40,6 +40,6 @@ To extract a message,
 Example Usage:
 
 ```
-blue_steganography.encoded_image = "path/to/image2.png"
+encoded_image =  "path/to/image2.png"
 blue_steganography.extract_message(encoded_image, extracted_message_path)
 ```

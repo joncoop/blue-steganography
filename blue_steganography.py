@@ -1,15 +1,19 @@
 import pygame
+
 pygame.init()
 
-def hide_message(message_file_path, original_image_path, encoded_image_path):
-  # read message from text file
-  with open(message_file_path, 'r') as f:
-    message = f.read()
+# config
+stop_flag = "[[:stop:]]"
 
-  message += "[[:stop:]]"
-  # convert message to binary
-  binary_digits = ""
-  for c in message:
+def text_to_binary(text):
+  '''
+  Converts ASCII text to a string binary digits. Each character will be
+  represented as 8 bits.
+  '''
+
+  binary_str = ""
+  
+  for c in text:
     d = ord(c)
     b = bin(d)
     b = b[2:]
@@ -17,7 +21,36 @@ def hide_message(message_file_path, original_image_path, encoded_image_path):
     while len(b) < 8:
       b = "0" + b
     
-    binary_digits += b
+    binary_str += b
+    
+  return binary_str
+
+def binary_to_text(binary_str):
+  '''
+  Converts a string binary digits to ASCII text. Each character will be
+  represented as 8 bits.
+  '''
+
+  result = ""
+
+  # separate binary string into 8 bit chunks
+  chunks = [binary_str[i: i+8] for i in range(0, len(binary_str), 8)]
+
+  for c in chunks:
+    d = int(c, 2)
+    if 32 <= d <= 126:
+      result += str(chr(d))
+
+  return result
+
+def hide_message(message_file_path, original_image_path, encoded_image_path):
+  # read message from text file and append stop flag
+  with open(message_file_path, 'r') as f:
+    message = f.read()
+  message += stop_flag
+
+  # convert message to binary
+  binary_digits = text_to_binary(message)
     
   # load the original image file as a surface
   surf = pygame.image.load(original_image_path)
@@ -63,26 +96,20 @@ def extract_message(encoded_image_path, extracted_message_path):
   height = surf.get_height()
 
   # build binary digit string from image
-  binary_digits = ""
+  binary_str = ""
   
   for x in range(width):
     for y in range(height):
       loc = [x, y]
       color = surf.get_at(loc)
       blue = color.b
-      binary_digits += str(blue % 2)
+      binary_str += str(blue % 2)
 
-  result = ""
-
-  # separate binary string into 8 bit chunks
-  chunks = [binary_digits[i: i+8] for i in range(0, len(binary_digits), 8)]
-
-  for c in chunks:
-    d = int(c, 2)
-    if 32 <= d <= 126:
-      result += str(chr(d))
-  #
-  end = result.find("[[:stop:]]")
+  # convert binary string to text
+  result = binary_to_text(binary_str)
+  
+  # truncate any characters after stop flag
+  end = result.find(stop_flag)
   result = result[:end]
   
   # write extracted message to file
