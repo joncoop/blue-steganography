@@ -21,7 +21,7 @@ To embed a message,
   5) Set the path to new image in which message will be hidden. The file type must also be a PNG or Bitmap image. This image will be created when the message is hidden.
   6) Call hide_message()
 
-/* JPEG images are not supported because of the way JPEG file compression works. Only image formats that preserve the exact color value for every pixel can be used with this technique.
+\* JPEG images are not supported because of the way JPEG file compression works. Only image formats that preserve the exact color value for every pixel can be used with this technique.
 
 Example usage:
 
