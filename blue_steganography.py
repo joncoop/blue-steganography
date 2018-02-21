@@ -39,7 +39,7 @@ def binary_to_text(binary_str):
 
   for c in chunks:
     d = int(c, 2)
-    if 32 <= d <= 126:
+    if d <= 126:
       result += str(chr(d))
 
   return result
