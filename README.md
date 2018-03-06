@@ -46,6 +46,6 @@ Example Usage:
 
 ```
 encoded_image =  "path/to/image2.png"
-extracted_message_path = "path/to/some_file.txt"
-blue_steganography.extract_message(encoded_image, extracted_message_path)
+extracted_message = "path/to/some_file.txt"
+blue_steganography.extract_message(encoded_image, extracted_message)
 ```
